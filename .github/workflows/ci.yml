@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: pip install numpy
+      - name: Tests
+        run: PYTHONPATH=src python -m unittest discover -s tests
+      - name: Make-or-break harness (smoke)
+        run: PYTHONPATH=src python -m fraktalka.eval --seed 0 --models 16
