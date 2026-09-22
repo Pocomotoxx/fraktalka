@@ -24,3 +24,5 @@ jobs:
         run: PYTHONPATH=src python -m fraktalka.eval --seed 0 --models 16
       - name: Standard benchmark (digits smoke)
         run: PYTHONPATH=src python -m fraktalka.eval.benchmark --seed 0 --models 16
+      - name: Multi-seed confirmation (smoke)
+        run: PYTHONPATH=src python -m fraktalka.eval.multiseed --seeds 4 --models 10

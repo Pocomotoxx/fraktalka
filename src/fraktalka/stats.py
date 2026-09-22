@@ -38,3 +38,27 @@ def kendall_tau(a: np.ndarray, b: np.ndarray) -> float:
     if denom == 0:
         return float("nan")
     return float((concordant - discordant) / denom)
+
+
+def binom_two_sided(k: int, n: int, p: float = 0.5) -> float:
+    """Exact two-sided binomial p-value: P(a count at least as extreme as k) under
+    Binomial(n, p). Dependency-free; used for the sign test. Returns 1.0 for n == 0."""
+    from math import comb
+
+    if n <= 0:
+        return 1.0
+    probs = [comb(n, i) * (p ** i) * ((1 - p) ** (n - i)) for i in range(n + 1)]
+    thresh = probs[k] * (1 + 1e-9)
+    return float(min(1.0, sum(pr for pr in probs if pr <= thresh)))
+
+
+def sign_test(values: np.ndarray) -> dict:
+    """Two-sided sign test on whether `values` are consistently one sign (ties/NaN
+    dropped). Returns counts and an exact binomial p-value."""
+    v = np.asarray(values, dtype=float)
+    v = v[~np.isnan(v)]
+    pos = int((v > 0).sum())
+    neg = int((v < 0).sum())
+    n = pos + neg
+    k = max(pos, neg)
+    return {"n": n, "pos": pos, "neg": neg, "p": binom_two_sided(k, n)}

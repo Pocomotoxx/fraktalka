@@ -31,13 +31,28 @@ baselines in most seeds, with |tau| up to ~0.5 — clearly stronger than the syn
 pilot. The standout is **static self-similarity (`ss_rate`)**, consistently among the
 best predictors; the trajectory DFA is strongest in some seeds and weak in others.
 **But which fractal signal wins is seed-dependent, and this is one small benchmark.**
-So: a real signal appears to be there, larger than chance and larger than the
-baselines — not yet a stable, single, proven predictor. **Still a hypothesis, now with
-promising early evidence.** Run:
+**Multi-seed confirmation (30 seeds x 30 models, exact sign test):** the strongest
+signal is **static self-similarity (`ss_rate`)** — the *same sign in all 30/30 seeds*
+(|mean tau| ~= 0.32) and it beats the strongest weight-norm baseline in **29/30 seeds
+(p < 0.001)**. The trajectory DFA signals also reliably beat the baseline (p < 0.001 and
+p = 0.04). Notably, the *raw spectral slope d_F was noise* (sign-test p = 0.36): if
+anything carries here it is **self-similarity, not the Fourier fractal dimension** the
+source material emphasised. The data named a different carrier than the hype.
+
+**Two honest caveats that keep this a hypothesis, not a result:**
+1. `ss_rate` and the trajectory DFA were noticed *post-hoc on the same data*, so this is
+   confirmation-on-selected; the significance is inflated by the selection. A clean
+   confirmation needs a **fresh, pre-registered replication on a different dataset**.
+2. One dataset (digits), one model family (a tiny MLP), one gap mechanism (label noise +
+   subsampling). Generalising beyond this needs more.
+
+So: a **statistically significant, baseline-beating signal exists here** — but it is
+selected and singular. **Promising, not proven.** Run:
 
 ```bash
 pip install numpy scikit-learn
 PYTHONPATH=src python -m fraktalka.eval.benchmark --seed 0 --models 40
+PYTHONPATH=src python -m fraktalka.eval.multiseed --seeds 30 --models 30
 ```
 
 ## Run it
