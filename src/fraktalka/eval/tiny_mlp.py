@@ -49,9 +49,27 @@ class TinyMLP:
         logits, _ = self.forward(x)
         return float((logits.argmax(axis=1) == y).mean())
 
-    def train(self, x, y, epochs: int, lr: float, weight_decay: float, rng: np.random.Generator):
+    def flat_params(self) -> np.ndarray:
+        return np.concatenate([self.W1.ravel(), self.b1, self.W2.ravel(), self.b2])
+
+    def train(self, x, y, epochs: int, lr: float, weight_decay: float,
+              rng: np.random.Generator, record_trajectory: bool = False):
+        """Train by mini-batch SGD. When record_trajectory is set, capture a 1D view
+        of the optimisation *path* — the projection of the (concatenated) parameters
+        onto a fixed random direction, and each step's update magnitude — so its
+        fractal dimension can be probed. The trajectory, not the static endpoint, is
+        what the d_F-vs-generalization claim is actually about."""
         n, n_classes = x.shape[0], self.W2.shape[1]
         onehot = np.eye(n_classes)[y]
+        self.trajectory = None
+        proj_dir = None
+        proj_series: list[float] = []
+        update_norms: list[float] = []
+        if record_trajectory:
+            d = self.flat_params().size
+            proj_dir = rng.normal(size=d)
+            proj_dir /= np.linalg.norm(proj_dir) + 1e-12
+
         for _ in range(epochs):
             idx = rng.permutation(n)
             for start in range(0, n, 32):
@@ -68,8 +86,19 @@ class TinyMLP:
                 g_h[h_pre <= 0] = 0.0
                 gW1 = xb.T @ g_h + weight_decay * self.W1
                 gb1 = g_h.sum(axis=0)
+                if record_trajectory:
+                    before = self.flat_params()
                 self.W1 -= lr * gW1
                 self.b1 -= lr * gb1
                 self.W2 -= lr * gW2
                 self.b2 -= lr * gb2
+                if record_trajectory:
+                    after = self.flat_params()
+                    proj_series.append(float(proj_dir @ after))
+                    update_norms.append(float(np.linalg.norm(after - before)))
+        if record_trajectory:
+            self.trajectory = {
+                "projection": np.array(proj_series),
+                "update_norms": np.array(update_norms),
+            }
         return self

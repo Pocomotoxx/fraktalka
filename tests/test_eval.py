@@ -18,8 +18,16 @@ class EvalHarnessTests(unittest.TestCase):
         r2 = run(seed=0, n_models=8)
         self.assertEqual(r1["tau_vs_gap"], r2["tau_vs_gap"])  # deterministic
         self.assertEqual(r1["n_models"], 8)
-        self.assertIn("spectral_slope[FRACTAL]", r1["tau_vs_gap"])
+        self.assertIn("dfa_traj_proj[FRACTAL-TRAJ]", r1["tau_vs_gap"])  # the trajectory signal
+        self.assertIn("spectral_slope_static[FRACTAL]", r1["tau_vs_gap"])
         self.assertIn("frobenius_norm[baseline]", r1["tau_vs_gap"])
+
+    def test_trajectory_signal_is_defined(self):
+        # With the longer training schedule, the trajectory DFA must be computable
+        # (not all-NaN) for at least most models.
+        r = run(seed=0, n_models=8)
+        name, tau = r["best_trajectory"]
+        self.assertNotEqual(name, "none", "trajectory signal never computed")
 
     def test_taus_are_bounded(self):
         r = run(seed=1, n_models=8)

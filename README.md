@@ -15,12 +15,19 @@ A signal is a signal, **never a proof**. Assurance is never raised to `VERIFIED`
 
 ## Status (honest)
 
-The harness works and is deterministic. The **first pilot** (small, synthetic MLPs) is
-**inconclusive**: no signal — fractal or baseline — strongly predicts the generalization
-gap, and which one "wins" flips between random seeds. This is expected at this scale
-(the pilot's gap variance is low, so there is little to rank) and is exactly why the
-claim is not yet made. A real answer needs standard benchmarks with a wide range of
-generalization gaps. **The thesis is a hypothesis until this harness says otherwise.**
+The harness works and is deterministic, and it now runs the **fair** test of the core
+claim: the "fractal dimension predicts generalization" idea is about the *training
+trajectory* (the sequence of weight updates), not the static final weights — so the
+harness computes a **trajectory** signal (DFA of a 1D projection of the optimisation
+path) alongside static-weight signals and baselines.
+
+Result on the current small synthetic pilot: still **inconclusive**. Every signal —
+trajectory, static, or baseline — has weak ranking power (|Kendall tau| < ~0.25) and the
+"winner" flips across seeds. The trajectory signal is sometimes the best but not
+reliably so. Measuring the right quantity (the trajectory) did **not** rescue the claim
+at this scale. A real answer needs standard benchmarks with a wide range of
+generalization gaps. **The thesis stays a hypothesis until this harness says otherwise —
+and so far it does not.**
 
 ## Run it
 
@@ -39,7 +46,7 @@ it), and whether the fractal signal beats the weight-norm baselines.
 | Path | What |
 |---|---|
 | `src/fraktalka/diagnostics.py` | intrinsic signals: `spectral_slope` (2D radial power spectrum), `dfa_exponent` (1D DFA), `ss_rate` (cross-layer self-similarity), and norm baselines |
-| `src/fraktalka/eval/` | the falsification harness: train real tiny models, measure the gap, correlate each signal against it |
+| `src/fraktalka/eval/` | the falsification harness: train real tiny models (recording the training trajectory), measure the gap, correlate each signal — trajectory d_F, static-weight signals, and baselines — against it |
 | `src/fraktalka/stats.py` | `kendall_tau` (dependency-free) |
 | `tests/` | deterministic property tests (DFA of white noise ~0.5, of a random walk >1, etc.) + harness smoke |
 
