@@ -17,8 +17,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install
-        run: pip install numpy
+        run: pip install numpy scikit-learn
       - name: Tests
         run: PYTHONPATH=src python -m unittest discover -s tests
-      - name: Make-or-break harness (smoke)
+      - name: Make-or-break harness (synthetic smoke)
         run: PYTHONPATH=src python -m fraktalka.eval --seed 0 --models 16
+      - name: Standard benchmark (digits smoke)
+        run: PYTHONPATH=src python -m fraktalka.eval.benchmark --seed 0 --models 16

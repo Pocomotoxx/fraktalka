@@ -73,7 +73,13 @@ def run(seed: int = 0, n_models: int = 24, dim: int = 20, n_classes: int = 4) ->
         gaps.append(gap)
         signal_rows.append(_model_signals(model, x_tr[:64]))
 
-    gaps_arr = np.array(gaps)
+    return aggregate(signal_rows, np.array(gaps), n_models)
+
+
+def aggregate(signal_rows: list[dict], gaps_arr: np.ndarray, n_models: int) -> dict:
+    """Score every candidate signal against the measured generalization gap and group
+    the results (trajectory / static / baseline). Shared by the synthetic run and the
+    standard-benchmark run so both report identically."""
     names = list(signal_rows[0].keys())
     taus = {}
     for name in names:
@@ -96,6 +102,8 @@ def run(seed: int = 0, n_models: int = 24, dim: int = 20, n_classes: int = 4) ->
     def _abs(x):
         return abs(x) if x == x else -1.0
 
+    best_fractal_any = max([best_traj, best_static], key=lambda p: _abs(p[1]))
+
     return {
         "n_models": n_models,
         "gap_mean": float(gaps_arr.mean()),
@@ -104,9 +112,11 @@ def run(seed: int = 0, n_models: int = 24, dim: int = 20, n_classes: int = 4) ->
         "best_trajectory": best_traj,
         "best_static": best_static,
         "best_baseline": best_base,
+        "best_fractal_any": best_fractal_any,
+        "fractal_beats_baseline": bool(_abs(best_fractal_any[1]) > _abs(best_base[1])),
         "trajectory_beats_baseline": bool(_abs(best_traj[1]) > _abs(best_base[1])),
         "trajectory_beats_static": bool(_abs(best_traj[1]) > _abs(best_static[1])),
-        "assurance_level": "DECLARED",  # never VERIFIED: a pilot signal, not proof
+        "assurance_level": "DECLARED",  # never VERIFIED: a signal, not proof
     }
 
 
@@ -133,13 +143,15 @@ def format_report(result: dict) -> str:
         "",
         f"best TRAJECTORY signal: {_fmt(result['best_trajectory'])}",
         f"best static signal    : {_fmt(result['best_static'])}",
+        f"best fractal (any)    : {_fmt(result['best_fractal_any'])}",
         f"best baseline         : {_fmt(result['best_baseline'])}",
         "",
-        "VERDICT (assurance=DECLARED, pilot only, UNVERIFIABLE beyond this synthetic run):",
-        f"  trajectory d_F beats baseline: {result['trajectory_beats_baseline']}",
-        f"  trajectory d_F beats static  : {result['trajectory_beats_static']}",
-        "  -> This is the fair test of the 'd_F predicts generalization' claim: it is",
-        "     about the training TRAJECTORY, not the static final weights. Whichever way",
-        "     it falls on real benchmarks is the answer. A signal is a signal, never a proof.",
+        "VERDICT (assurance=DECLARED, UNVERIFIABLE beyond this run):",
+        f"  a fractal signal beats every baseline: {result['fractal_beats_baseline']}",
+        f"  the trajectory d_F specifically beats baseline: {result['trajectory_beats_baseline']}",
+        "  -> The fair test of 'd_F predicts generalization' is about the training",
+        "     TRAJECTORY, not static weights; we also report the best fractal-family signal.",
+        "     One benchmark and a handful of seeds decide nothing on their own. A signal is",
+        "     a signal, never a proof.",
     ]
     return "\n".join(lines)

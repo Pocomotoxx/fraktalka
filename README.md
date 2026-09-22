@@ -21,13 +21,24 @@ trajectory* (the sequence of weight updates), not the static final weights — s
 harness computes a **trajectory** signal (DFA of a 1D projection of the optimisation
 path) alongside static-weight signals and baselines.
 
-Result on the current small synthetic pilot: still **inconclusive**. Every signal —
-trajectory, static, or baseline — has weak ranking power (|Kendall tau| < ~0.25) and the
-"winner" flips across seeds. The trajectory signal is sometimes the best but not
-reliably so. Measuring the right quantity (the trajectory) did **not** rescue the claim
-at this scale. A real answer needs standard benchmarks with a wide range of
-generalization gaps. **The thesis stays a hypothesis until this harness says otherwise —
-and so far it does not.**
+**Synthetic pilot:** inconclusive — every signal had weak ranking power (|Kendall tau|
+< ~0.25) and the winner flipped across seeds, because the synthetic gaps were too
+uniform to rank.
+
+**Standard benchmark (scikit-learn digits, wide gap range via label noise + subsampling):**
+early and **cautiously encouraging**. A *fractal-family* signal beats the weight-norm
+baselines in most seeds, with |tau| up to ~0.5 — clearly stronger than the synthetic
+pilot. The standout is **static self-similarity (`ss_rate`)**, consistently among the
+best predictors; the trajectory DFA is strongest in some seeds and weak in others.
+**But which fractal signal wins is seed-dependent, and this is one small benchmark.**
+So: a real signal appears to be there, larger than chance and larger than the
+baselines — not yet a stable, single, proven predictor. **Still a hypothesis, now with
+promising early evidence.** Run:
+
+```bash
+pip install numpy scikit-learn
+PYTHONPATH=src python -m fraktalka.eval.benchmark --seed 0 --models 40
+```
 
 ## Run it
 

@@ -40,10 +40,10 @@ class EvalHarnessTests(unittest.TestCase):
         r = run(seed=0, n_models=8)
         self.assertNotEqual(r["assurance_level"], "VERIFIED")
 
-    def test_report_states_it_is_a_pilot_and_not_proof(self):
-        text = format_report(run(seed=0, n_models=8))
-        self.assertIn("pilot", text.lower())
-        self.assertIn("never a proof", text.lower())
+    def test_report_states_it_is_not_proof(self):
+        text = format_report(run(seed=0, n_models=8)).lower()
+        self.assertIn("never a proof", text)
+        self.assertIn("unverifiable", text)
 
     def test_models_have_measurable_gap_variance(self):
         # The experiment is only meaningful if the models actually differ; guard it.
